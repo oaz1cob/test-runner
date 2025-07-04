@@ -1,0 +1,27 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]  # Trigger on main branch pushes
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build with Docker
+        run: |
+          docker build -t react-app .
+          mkdir -p ./dist
+          docker create --name temp-container react-app
+          docker cp temp-container:/app/dist ./dist
+          docker rm temp-container
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist  # Matches your Dockerfile's output
+          keep_files: false    # Clean previous deploys
